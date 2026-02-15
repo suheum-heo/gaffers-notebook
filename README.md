@@ -15,7 +15,7 @@ Built by a suffering Tottenham Hotspur fan who needed a way to visualize tactics
 
 ## Live Demo
 
-👉 **[Try it here](#)** _([your deployed URL will go here](https://suheum-heo.github.io/gaffers-notebook/))_
+👉 **https://suheum-heo.github.io/gaffers-notebook/** 
 
 ## How to Use
 
@@ -45,4 +45,4 @@ Free to use. Built with frustration and hope. COYS! 🤍
 
 ---
 
-_"With 15 injured players, someone had to figure out how to field a team."
+"With 15 injured players, someone had to figure out how to field a team."
