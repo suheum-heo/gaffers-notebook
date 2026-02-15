@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaffer's Notebook | Tactical Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pitch-green: #2d5016;
+            --pitch-dark: #1a3209;
+            --line-white: #f0f0f0;
+            --spurs-navy: #132257;
+            --accent-yellow: #ffd700;
+            --card-bg: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-light: #666666;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--spurs-navy);
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr 320px;
+            gap: 25px;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+
+        .squad-panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .position-group {
+            margin-bottom: 25px;
+        }
+
+        .position-header {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--spurs-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: #f8f8f8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .player-item:hover {
+            background: #efefef;
+            transform: translateX(3px);
+        }
+
+        .player-item.selected {
+            background: var(--spurs-navy);
+            color: white;
+            border-left-color: var(--accent-yellow);
+        }
+
+        .player-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .player-item.injured {
+            opacity: 0.5;
+            background: #ffe6e6;
+        }
+
+        .player-item.doubtful {
+            opacity: 0.75;
+            background: #fff4e6;
+        }
+
+        .player-item.suspended {
+            opacity: 0.5;
+            background: #ffe6e6;
+            border-left-color: #ff4444;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .player-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-injured {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-doubtful {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-suspended {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-toggle {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: transparent;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-toggle:hover {
+            background: #ddd;
+        }
+
+        .player-item.selected .status-toggle {
+            border-color: white;
+            color: white;
+        }
+
+        .player-item.selected .status-toggle:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .rating-stars {
+            color: var(--accent-yellow);
+            font-size: 0.75rem;
+            margin-left: 4px;
+        }
+
+        .tactical-panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        .tactical-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tactical-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .tactical-section h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--spurs-navy);
+            text-transform: uppercase;
+        }
+
+        .weakness-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #ffe6e6;
+            color: #d32f2f;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .strength-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tactical-note {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .tactical-note:focus {
+            outline: none;
+            border-color: var(--spurs-navy);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .comparison-card {
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 8px;
+        }
+
+        .comparison-card h4 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .comparison-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--spurs-navy);
+        }
+
+        .drag-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(19, 34, 87, 0.1);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 99;
+        }
+
+        .drag-overlay.active {
+            opacity: 1;
+        }
+
+        .export-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .export-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-export {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--spurs-navy) 0%, #0f1a40 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(19, 34, 87, 0.4);
+        }
+
+        .btn-export.success {
+            background: #28a745;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--spurs-navy);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .watermark {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .watermark a {
+            color: var(--spurs-navy);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .watermark a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--spurs-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .formation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .formation-btn {
+            padding: 12px;
+            background: #f8f8f8;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .formation-btn:hover {
+            background: var(--spurs-navy);
+            color: white;
+            border-color: var(--spurs-navy);
+            transform: translateY(-2px);
+        }
+
+        .formation-btn.active {
+            background: var(--spurs-navy);
+            color: white;
+            border-color: var(--spurs-navy);
+        }
+
+        .controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--spurs-navy);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #0f1a40;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(19, 34, 87, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .pitch-container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .pitch {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            aspect-ratio: 7/10;
+            margin: 0 auto;
+            background: linear-gradient(180deg, var(--pitch-green) 0%, var(--pitch-dark) 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.3);
+        }
+
+        /* Pitch markings */
+        .pitch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                /* Horizontal stripes */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 9%,
+                    rgba(0,0,0,0.03) 9%,
+                    rgba(0,0,0,0.03) 10%
+                ),
+                /* Outer box */
+                linear-gradient(var(--line-white) 2px, transparent 2px),
+                linear-gradient(90deg, var(--line-white) 2px, transparent 2px),
+                /* Center line */
+                linear-gradient(0deg, transparent 49.7%, var(--line-white) 49.7%, var(--line-white) 50.3%, transparent 50.3%),
+                /* Penalty boxes */
+                linear-gradient(0deg, transparent 14%, var(--line-white) 14%, var(--line-white) 14.3%, transparent 14.3%),
+                linear-gradient(0deg, transparent 85.7%, var(--line-white) 85.7%, var(--line-white) 86%, transparent 86%),
+                linear-gradient(90deg, transparent 22%, var(--line-white) 22%, var(--line-white) 22.3%, transparent 22.3%),
+                linear-gradient(90deg, transparent 77.7%, var(--line-white) 77.7%, var(--line-white) 78%, transparent 78%);
+            background-size: 
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%;
+            background-position: 0 0;
+            background-repeat: no-repeat;
+        }
+
+        /* Center circle */
+        .pitch::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 18%;
+            aspect-ratio: 1;
+            border: 2px solid var(--line-white);
+            border-radius: 50%;
+        }
+
+        .player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: var(--spurs-navy);
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.75rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            will-change: transform;
+            text-align: center;
+            padding: 2px;
+            line-height: 1.1;
+        }
+
+        .player.dragging {
+            transition: none;
+        }
+
+        .player:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .player:active {
+            cursor: grabbing;
+            transform: scale(1.2);
+        }
+
+        .player.goalkeeper {
+            background: var(--accent-yellow);
+            color: var(--text-dark);
+        }
+
+        .stats-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            border-left: 4px solid var(--spurs-navy);
+        }
+
+        .stats-panel h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--spurs-navy);
+            text-transform: uppercase;
+        }
+
+        .formation-name {
+            text-align: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--spurs-navy);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection improvements */
+        ::selection {
+            background: var(--accent-yellow);
+            color: var(--text-dark);
+        }
+
+        /* Focus styles for accessibility */
+        button:focus,
+        textarea:focus {
+            outline: 2px solid var(--accent-yellow);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .squad-panel {
+                max-height: none;
+            }
+
+            .tactical-panel {
+                margin-top: 0;
+            }
+
+            .export-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .pitch-container {
+                padding: 15px;
+            }
+
+            .formation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+
+            .squad-panel {
+                padding: 20px;
+            }
+
+            .player {
+                width: 45px;
+                height: 45px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Gaffer's Notebook</h1>
+        <p>Tactical Builder for the Modern Manager</p>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>Formations</h2>
+            <div class="formation-grid">
+                <button class="formation-btn active" onclick="setFormation('4-3-3')">4-3-3</button>
+                <button class="formation-btn" onclick="setFormation('4-2-3-1')">4-2-3-1</button>
+                <button class="formation-btn" onclick="setFormation('3-4-3')">3-4-3</button>
+                <button class="formation-btn" onclick="setFormation('3-5-2')">3-5-2</button>
+                <button class="formation-btn" onclick="setFormation('4-4-2')">4-4-2</button>
+                <button class="formation-btn" onclick="setFormation('5-3-2')">5-3-2</button>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <button class="btn" onclick="resetFormation()">Reset Positions</button>
+                </div>
+                <div class="control-group">
+                    <button class="btn btn-secondary" onclick="clearPitch()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <h3>How to Use</h3>
+                <p style="color: var(--text-light); line-height: 1.6; font-size: 0.95rem;">
+                    <strong>1.</strong> Select a formation<br>
+                    <strong>2.</strong> Assign players by:<br>
+                    &nbsp;&nbsp;&nbsp;• Dragging from squad to pitch, OR<br>
+                    &nbsp;&nbsp;&nbsp;• Click player → click position<br>
+                    <strong>3.</strong> Update player status (⟳ button)<br>
+                    <strong>4.</strong> Drag positions to fine-tune<br>
+                    <strong>5.</strong> View tactical analysis below pitch<br><br>
+                    <strong>Status:</strong> ✓ Available | ✗ Injured | ? Doubtful | S Suspended<br>
+                    <strong>Stars:</strong> Player rating/form
+                </p>
+            </div>
+
+            <div class="export-section">
+                <h3 style="font-family: 'Oswald', sans-serif; font-size: 1.2rem; margin-bottom: 12px; color: var(--spurs-navy); text-transform: uppercase;">Share & Export</h3>
+                <div class="export-grid">
+                    <button class="btn-export" onclick="downloadImage()">
+                        📸 Download Image
+                    </button>
+                    <button class="btn-export" onclick="copyToClipboard()">
+                        📋 Copy Link
+                    </button>
+                    <button class="btn-export" onclick="saveSetup()">
+                        💾 Save Setup
+                    </button>
+                    <button class="btn-export" onclick="loadSetup()">
+                        📂 Load Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="pitch-container">
+            <div class="formation-name" id="formationName">4-3-3 Formation</div>
+            <div class="pitch" id="pitch">
+                <!-- Players will be added here dynamically -->
+            </div>
+            
+            <div class="tactical-panel">
+                <div class="tactical-section">
+                    <h3>Tactical Analysis</h3>
+                    <div class="comparison-grid">
+                        <div class="comparison-card">
+                            <h4>Squad Depth</h4>
+                            <div class="comparison-value" id="availableCount">0/11</div>
+                        </div>
+                        <div class="comparison-card">
+                            <h4>Avg Rating</h4>
+                            <div class="comparison-value" id="avgRating">0.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tactical-section">
+                    <h3>Weaknesses</h3>
+                    <div id="weaknessesDisplay">
+                        <p style="color: var(--text-light); font-style: italic;">Assign players to see tactical analysis</p>
+                    </div>
+                </div>
+
+                <div class="tactical-section">
+                    <h3>Tactical Notes</h3>
+                    <textarea class="tactical-note" id="tacticalNotes" placeholder="Add your tactical reasoning here...&#10;&#10;e.g., 'Playing 3-4-3 to compensate for defensive injuries. Kulusevski drops deep to cover for Bentancur's absence...'"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="drag-overlay" id="dragOverlay"></div>
+
+        <div class="watermark">
+            Created with <strong>Gaffer's Notebook</strong> | Built by a suffering Spurs fan
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <div class="squad-panel">
+            <h2>Squad</h2>
+            <div id="squadList">
+                <!-- Squad will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Spurs Squad Database (February 2026 - Updated with latest transfers)
+        const spursSquad = {
+            GK: [
+                { name: 'Guglielmo Vicario', surname: 'Vicario', status: 'available', rating: 8 },
+                { name: 'Antonín Kinský', surname: 'Kinský', status: 'available', rating: 6 },
+                { name: 'Brandon Austin', surname: 'Austin', status: 'available', rating: 5 }
+            ],
+            DEF: [
+                { name: 'Pedro Porro', surname: 'Porro', status: 'available', rating: 8 },
+                { name: 'Cristian Romero', surname: 'Romero', status: 'available', rating: 9 },
+                { name: 'Micky van de Ven', surname: 'Van de Ven', status: 'available', rating: 8 },
+                { name: 'Destiny Udogie', surname: 'Udogie', status: 'available', rating: 7 },
+                { name: 'Ben Davies', surname: 'Davies', status: 'injured', rating: 7 },
+                { name: 'Radu Drăgușin', surname: 'Drăgușin', status: 'available', rating: 7 },
+                { name: 'Djed Spence', surname: 'Spence', status: 'available', rating: 6 },
+                { name: 'Kevin Danso', surname: 'Danso', status: 'available', rating: 7 }
+            ],
+            MID: [
+                { name: 'Yves Bissouma', surname: 'Bissouma', status: 'available', rating: 7 },
+                { name: 'Rodrigo Bentancur', surname: 'Bentancur', status: 'injured', rating: 7 },
+                { name: 'Pape Matar Sarr', surname: 'Sarr', status: 'available', rating: 7 },
+                { name: 'James Maddison', surname: 'Maddison', status: 'available', rating: 8 },
+                { name: 'Dejan Kulusevski', surname: 'Kulusevski', status: 'available', rating: 8 },
+                { name: 'Lucas Bergvall', surname: 'Bergvall', status: 'available', rating: 6 },
+                { name: 'Archie Gray', surname: 'Gray', status: 'available', rating: 6 },
+                { name: 'João Palhinha', surname: 'Palhinha', status: 'available', rating: 8 },
+                { name: 'Xavi Simons', surname: 'Simons', status: 'available', rating: 8 },
+                { name: 'Conor Gallagher', surname: 'Gallagher', status: 'available', rating: 7 },
+                { name: 'Mohammed Kudus', surname: 'Kudus', status: 'available', rating: 8 }
+            ],
+            FWD: [
+                { name: 'Dominic Solanke', surname: 'Solanke', status: 'available', rating: 8 },
+                { name: 'Richarlison', surname: 'Richarlison', status: 'available', rating: 7 },
+                { name: 'Mathys Tel', surname: 'Tel', status: 'available', rating: 7 },
+                { name: 'Wilson Odobert', surname: 'Odobert', status: 'injured', rating: 6 },
+                { name: 'Randal Kolo Muani', surname: 'Kolo Muani', status: 'available', rating: 7 }
+            ]
+        };
+
+        const formations = {
+            '4-3-3': {
+                GK: [[50, 92]],
+                DEF: [[20, 75], [40, 75], [60, 75], [80, 75]],
+                MID: [[30, 50], [50, 50], [70, 50]],
+                FWD: [[25, 20], [50, 15], [75, 20]]
+            },
+            '4-2-3-1': {
+                GK: [[50, 92]],
+                DEF: [[20, 75], [40, 75], [60, 75], [80, 75]],
+                MID: [[35, 60], [65, 60], [25, 40], [50, 35], [75, 40]],
+                FWD: [[50, 15]]
+            },
+            '3-4-3': {
+                GK: [[50, 92]],
+                DEF: [[30, 75], [50, 75], [70, 75]],
+                MID: [[15, 55], [40, 50], [60, 50], [85, 55]],
+                FWD: [[25, 20], [50, 15], [75, 20]]
+            },
+            '3-5-2': {
+                GK: [[50, 92]],
+                DEF: [[30, 75], [50, 75], [70, 75]],
+                MID: [[15, 55], [35, 48], [50, 45], [65, 48], [85, 55]],
+                FWD: [[38, 18], [62, 18]]
+            },
+            '4-4-2': {
+                GK: [[50, 92]],
+                DEF: [[20, 75], [40, 75], [60, 75], [80, 75]],
+                MID: [[20, 50], [40, 50], [60, 50], [80, 50]],
+                FWD: [[38, 18], [62, 18]]
+            },
+            '5-3-2': {
+                GK: [[50, 92]],
+                DEF: [[15, 78], [32, 75], [50, 75], [68, 75], [85, 78]],
+                MID: [[30, 50], [50, 48], [70, 50]],
+                FWD: [[38, 18], [62, 18]]
+            }
+        };
+
+        let currentFormation = '4-3-3';
+        let draggedPlayer = null;
+        let players = [];
+        let selectedSlot = null;
+        let playerAssignments = {}; // Maps pitch position to player data
+
+        function loadSquad() {
+            const squadList = document.getElementById('squadList');
+            squadList.innerHTML = '';
+
+            ['GK', 'DEF', 'MID', 'FWD'].forEach(position => {
+                const group = document.createElement('div');
+                group.className = 'position-group';
+                
+                const header = document.createElement('div');
+                header.className = 'position-header';
+                header.textContent = {
+                    'GK': 'Goalkeepers',
+                    'DEF': 'Defenders', 
+                    'MID': 'Midfielders',
+                    'FWD': 'Forwards'
+                }[position];
+                group.appendChild(header);
+
+                spursSquad[position].forEach(player => {
+                    const item = document.createElement('div');
+                    item.className = `player-item ${player.status}`;
+                    item.dataset.position = position;
+                    item.dataset.player = JSON.stringify(player);
+                    item.draggable = true;
+                    
+                    const stars = '★'.repeat(Math.floor(player.rating / 2));
+                    
+                    item.innerHTML = `
+                        <span class="player-name">
+                            ${player.name}
+                            <span class="rating-stars">${stars}</span>
+                        </span>
+                        <div class="player-status">
+                            <span class="status-badge status-${player.status}">
+                                ${player.status === 'available' ? '✓' : 
+                                  player.status === 'injured' ? '✗' : 
+                                  player.status === 'doubtful' ? '?' : 'S'}
+                            </span>
+                            <button class="status-toggle" onclick="cycleStatus(event, this)">⟳</button>
+                        </div>
+                    `;
+                    
+                    // Click to select
+                    item.onclick = (e) => {
+                        if (!e.target.classList.contains('status-toggle')) {
+                            selectPlayerForPitch(player, position, item);
+                        }
+                    };
+                    
+                    // Drag start
+                    item.addEventListener('dragstart', (e) => {
+                        item.classList.add('dragging');
+                        document.getElementById('dragOverlay').classList.add('active');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', JSON.stringify(player));
+                    });
+                    
+                    // Drag end
+                    item.addEventListener('dragend', (e) => {
+                        item.classList.remove('dragging');
+                        document.getElementById('dragOverlay').classList.remove('active');
+                    });
+                    
+                    group.appendChild(item);
+                });
+
+                squadList.appendChild(group);
+            });
+        }
+
+        function cycleStatus(event, button) {
+            event.stopPropagation();
+            const item = button.closest('.player-item');
+            const player = JSON.parse(item.dataset.player);
+            
+            const statusCycle = ['available', 'injured', 'doubtful', 'suspended'];
+            const currentIndex = statusCycle.indexOf(player.status);
+            const newStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
+            
+            player.status = newStatus;
+            item.dataset.player = JSON.stringify(player);
+            
+            // Update classes
+            item.className = `player-item ${newStatus}`;
+            
+            // Update badge
+            const badge = item.querySelector('.status-badge');
+            badge.className = `status-badge status-${newStatus}`;
+            badge.textContent = newStatus === 'available' ? '✓' : 
+                               newStatus === 'injured' ? '✗' : 
+                               newStatus === 'doubtful' ? '?' : 'S';
+            
+            // Update squad data
+            const position = item.dataset.position;
+            const playerIndex = spursSquad[position].findIndex(p => p.name === player.name);
+            if (playerIndex !== -1) {
+                spursSquad[position][playerIndex].status = newStatus;
+            }
+
+            // Update pitch if this player is assigned
+            updatePitchDisplay();
+        }
+
+        function selectPlayerForPitch(player, position, itemElement) {
+            // Highlight selected player in squad
+            document.querySelectorAll('.player-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            if (itemElement) {
+                itemElement.classList.add('selected');
+            }
+
+            // Enable click-to-assign mode
+            const pitch = document.getElementById('pitch');
+            const players = pitch.querySelectorAll('.player');
+            
+            players.forEach(p => {
+                p.style.cursor = 'pointer';
+                p.style.boxShadow = '0 0 0 3px rgba(19, 34, 87, 0.3)';
+                p.onclick = function() {
+                    assignPlayerToSlot(player, this);
+                    // Reset all players
+                    players.forEach(pl => {
+                        pl.style.cursor = 'grab';
+                        pl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                        pl.onclick = null;
+                    });
+                };
+            });
+        }
+
+        function assignPlayerToSlot(player, slotElement) {
+            const slotId = slotElement.dataset.slotId;
+            playerAssignments[slotId] = player;
+            slotElement.textContent = player.surname;
+            
+            // Update visual based on status
+            slotElement.classList.remove('goalkeeper');
+            if (slotElement.dataset.isGk === 'true') {
+                slotElement.classList.add('goalkeeper');
+            }
+            
+            // Deselect from squad panel
+            document.querySelectorAll('.player-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Update tactical analysis
+            updateTacticalAnalysis();
+        }
+
+        function updateTacticalAnalysis() {
+            const assignedPlayers = Object.values(playerAssignments);
+            const availableCount = assignedPlayers.filter(p => p.status === 'available').length;
+            const totalAssigned = assignedPlayers.length;
+            
+            // Update available count
+            document.getElementById('availableCount').textContent = `${availableCount}/${totalAssigned}`;
+            
+            // Calculate average rating
+            if (assignedPlayers.length > 0) {
+                const avgRating = assignedPlayers.reduce((sum, p) => sum + p.rating, 0) / assignedPlayers.length;
+                document.getElementById('avgRating').textContent = avgRating.toFixed(1);
+            } else {
+                document.getElementById('avgRating').textContent = '0.0';
+            }
+            
+            // Analyze weaknesses
+            const weaknessesDiv = document.getElementById('weaknessesDisplay');
+            weaknessesDiv.innerHTML = '';
+            
+            if (assignedPlayers.length === 0) {
+                weaknessesDiv.innerHTML = '<p style="color: var(--text-light); font-style: italic;">Assign players to see tactical analysis</p>';
+                return;
+            }
+            
+            const weaknesses = [];
+            const strengths = [];
+            
+            // Check for injured/doubtful players
+            const injured = assignedPlayers.filter(p => p.status === 'injured').length;
+            const doubtful = assignedPlayers.filter(p => p.status === 'doubtful').length;
+            const suspended = assignedPlayers.filter(p => p.status === 'suspended').length;
+            
+            if (injured > 0) weaknesses.push(`${injured} injured player${injured > 1 ? 's' : ''} in lineup`);
+            if (doubtful > 0) weaknesses.push(`${doubtful} doubtful player${doubtful > 1 ? 's' : ''}`);
+            if (suspended > 0) weaknesses.push(`${suspended} suspended player${suspended > 1 ? 's' : ''}`);
+            
+            // Check average rating
+            const avgRating = assignedPlayers.reduce((sum, p) => sum + p.rating, 0) / assignedPlayers.length;
+            if (avgRating < 6.5) {
+                weaknesses.push('Below-par overall squad quality');
+            } else if (avgRating >= 7.5) {
+                strengths.push('Strong overall squad quality');
+            }
+            
+            // Check for low-rated players
+            const lowRated = assignedPlayers.filter(p => p.rating <= 6).length;
+            if (lowRated >= 3) {
+                weaknesses.push(`${lowRated} players with limited experience`);
+            }
+            
+            // Check lineup completion
+            if (totalAssigned < 11) {
+                weaknesses.push(`Incomplete lineup (${11 - totalAssigned} positions unfilled)`);
+            } else {
+                strengths.push('Full starting XI selected');
+            }
+            
+            // Display weaknesses
+            if (weaknesses.length > 0) {
+                weaknesses.forEach(w => {
+                    const badge = document.createElement('span');
+                    badge.className = 'weakness-badge';
+                    badge.textContent = w;
+                    weaknessesDiv.appendChild(badge);
+                });
+            }
+            
+            // Display strengths
+            if (strengths.length > 0) {
+                strengths.forEach(s => {
+                    const badge = document.createElement('span');
+                    badge.className = 'strength-badge';
+                    badge.textContent = s;
+                    weaknessesDiv.appendChild(badge);
+                });
+            }
+            
+            if (weaknesses.length === 0 && strengths.length === 0) {
+                weaknessesDiv.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No major weaknesses detected</p>';
+            }
+        }
+
+        function createPlayer(x, y, slotId, isGK = false) {
+            const player = document.createElement('div');
+            player.className = 'player' + (isGK ? ' goalkeeper' : '');
+            player.textContent = isGK ? 'GK' : slotId;
+            player.style.left = x + '%';
+            player.style.top = y + '%';
+            player.style.transform = 'translate(-50%, -50%)';
+            player.dataset.slotId = slotId;
+            player.dataset.isGk = isGK;
+            
+            // Drag over - allow drop
+            player.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                player.style.transform = 'translate(-50%, -50%) scale(1.15)';
+            });
+            
+            // Drag leave
+            player.addEventListener('dragleave', (e) => {
+                player.style.transform = 'translate(-50%, -50%)';
+            });
+            
+            // Drop - assign player
+            player.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const playerData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                assignPlayerToSlot(playerData, player);
+                player.style.transform = 'translate(-50%, -50%)';
+            });
+            
+            player.addEventListener('mousedown', startDrag);
+            player.addEventListener('touchstart', startDrag, { passive: false });
+            
+            return player;
+        }
+
+        function setFormation(formation) {
+            currentFormation = formation;
+            
+            // Update active button
+            document.querySelectorAll('.formation-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update formation name
+            document.getElementById('formationName').textContent = formation + ' Formation';
+            
+            loadFormation(formation);
+        }
+
+        function loadFormation(formation) {
+            const pitch = document.getElementById('pitch');
+            pitch.innerHTML = '';
+            players = [];
+            
+            const form = formations[formation];
+            let slotCounter = 1;
+            
+            // Add goalkeeper
+            form.GK.forEach(pos => {
+                const slotId = 'GK' + slotCounter++;
+                const player = createPlayer(pos[0], pos[1], slotId, true);
+                
+                // Restore assignment if exists
+                if (playerAssignments[slotId]) {
+                    player.textContent = playerAssignments[slotId].surname;
+                }
+                
+                pitch.appendChild(player);
+                players.push(player);
+            });
+            
+            slotCounter = 1;
+            
+            // Add defenders
+            form.DEF.forEach(pos => {
+                const slotId = 'DEF' + slotCounter++;
+                const player = createPlayer(pos[0], pos[1], slotId);
+                
+                if (playerAssignments[slotId]) {
+                    player.textContent = playerAssignments[slotId].surname;
+                }
+                
+                pitch.appendChild(player);
+                players.push(player);
+            });
+            
+            slotCounter = 1;
+            
+            // Add midfielders
+            form.MID.forEach(pos => {
+                const slotId = 'MID' + slotCounter++;
+                const player = createPlayer(pos[0], pos[1], slotId);
+                
+                if (playerAssignments[slotId]) {
+                    player.textContent = playerAssignments[slotId].surname;
+                }
+                
+                pitch.appendChild(player);
+                players.push(player);
+            });
+            
+            slotCounter = 1;
+            
+            // Add forwards
+            form.FWD.forEach(pos => {
+                const slotId = 'FWD' + slotCounter++;
+                const player = createPlayer(pos[0], pos[1], slotId);
+                
+                if (playerAssignments[slotId]) {
+                    player.textContent = playerAssignments[slotId].surname;
+                }
+                
+                pitch.appendChild(player);
+                players.push(player);
+            });
+        }
+
+        function updatePitchDisplay() {
+            // Refresh visual state of assigned players
+            document.querySelectorAll('.player').forEach(p => {
+                const slotId = p.dataset.slotId;
+                if (playerAssignments[slotId]) {
+                    const player = playerAssignments[slotId];
+                    // Could add visual indicators for injured/doubtful players here
+                }
+            });
+        }
+
+        function startDrag(e) {
+            draggedPlayer = e.target;
+            draggedPlayer.style.zIndex = '100';
+            draggedPlayer.classList.add('dragging');
+            
+            const moveHandler = (e) => {
+                e.preventDefault();
+                const pitch = document.getElementById('pitch');
+                const rect = pitch.getBoundingClientRect();
+                
+                let clientX, clientY;
+                if (e.type.includes('touch')) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const x = ((clientX - rect.left) / rect.width) * 100;
+                const y = ((clientY - rect.top) / rect.height) * 100;
+                
+                // Constrain to pitch bounds
+                const constrainedX = Math.max(5, Math.min(95, x));
+                const constrainedY = Math.max(5, Math.min(95, y));
+                
+                draggedPlayer.style.left = constrainedX + '%';
+                draggedPlayer.style.top = constrainedY + '%';
+            };
+            
+            const endDrag = () => {
+                if (draggedPlayer) {
+                    draggedPlayer.style.zIndex = '10';
+                    draggedPlayer.classList.remove('dragging');
+                    draggedPlayer = null;
+                }
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchmove', moveHandler);
+                document.removeEventListener('touchend', endDrag);
+            };
+            
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', moveHandler, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function resetFormation() {
+            loadFormation(currentFormation);
+        }
+
+        function clearPitch() {
+            playerAssignments = {};
+            loadFormation(currentFormation);
+            updateTacticalAnalysis();
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Download as image
+        async function downloadImage() {
+            showToast('Preparing download...');
+            
+            // Use html2canvas library via CDN
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            script.onload = async () => {
+                const container = document.querySelector('.container');
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#f5f5f5',
+                    scale: 2,
+                    logging: false
+                });
+                
+                // Convert to blob and download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `spurs-tactics-${currentFormation}-${Date.now()}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('✓ Image downloaded!');
+                });
+            };
+            document.head.appendChild(script);
+        }
+
+        // Copy shareable link to clipboard
+        function copyToClipboard() {
+            const setupData = {
+                formation: currentFormation,
+                assignments: playerAssignments,
+                notes: document.getElementById('tacticalNotes').value,
+                squad: spursSquad
+            };
+            
+            // Encode setup in URL - use encodeURIComponent to handle Unicode
+            const jsonString = JSON.stringify(setupData);
+            const encoded = encodeURIComponent(jsonString);
+            
+            // Create a shareable link
+            // If we're on a real domain, use that, otherwise give instructions
+            let url;
+            if (window.location.protocol === 'file:') {
+                // Local file - copy just the setup data
+                url = `Setup Data (paste this into the file URL after ?setup=):\n\n${encoded}`;
+                
+                navigator.clipboard.writeText(encoded).then(() => {
+                    showToast('✓ Setup copied! Share the HTML file + this code');
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = encoded;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast('✓ Setup copied!');
+                });
+                
+                // Also show an alert with instructions
+                setTimeout(() => {
+                    alert('Setup copied to clipboard!\n\nTo share:\n1. Send them this HTML file\n2. Send them the copied code\n3. They open the file and paste: filename.html?setup=[CODE]');
+                }, 500);
+            } else {
+                // Real web server
+                url = window.location.origin + window.location.pathname + '?setup=' + encoded;
+                
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('✓ Link copied to clipboard!');
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = url;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast('✓ Link copied!');
+                });
+            }
+        }
+
+        // Save setup to localStorage
+        function saveSetup() {
+            const setupData = {
+                formation: currentFormation,
+                assignments: playerAssignments,
+                notes: document.getElementById('tacticalNotes').value,
+                squad: spursSquad,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('gaffers-notebook-setup', JSON.stringify(setupData));
+            showToast('✓ Setup saved!');
+        }
+
+        // Load setup from localStorage
+        function loadSetup() {
+            const saved = localStorage.getItem('gaffers-notebook-setup');
+            if (!saved) {
+                showToast('No saved setup found');
+                return;
+            }
+            
+            try {
+                const setupData = JSON.parse(saved);
+                
+                // Restore formation
+                currentFormation = setupData.formation;
+                document.querySelectorAll('.formation-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.textContent.includes(setupData.formation)) {
+                        btn.classList.add('active');
+                    }
+                });
+                document.getElementById('formationName').textContent = setupData.formation + ' Formation';
+                
+                // Restore assignments
+                playerAssignments = setupData.assignments || {};
+                loadFormation(setupData.formation);
+                
+                // Restore notes
+                if (setupData.notes) {
+                    document.getElementById('tacticalNotes').value = setupData.notes;
+                }
+                
+                // Restore squad status if available
+                if (setupData.squad) {
+                    Object.keys(setupData.squad).forEach(pos => {
+                        setupData.squad[pos].forEach((savedPlayer, idx) => {
+                            if (spursSquad[pos][idx]) {
+                                spursSquad[pos][idx].status = savedPlayer.status;
+                            }
+                        });
+                    });
+                    loadSquad();
+                }
+                
+                updateTacticalAnalysis();
+                showToast('✓ Setup loaded!');
+            } catch (e) {
+                showToast('Error loading setup');
+            }
+        }
+
+        // Load from URL if shared
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const setupParam = params.get('setup');
+            
+            if (setupParam) {
+                try {
+                    const decoded = decodeURIComponent(setupParam);
+                    const setupData = JSON.parse(decoded);
+                    
+                    // Restore formation
+                    currentFormation = setupData.formation;
+                    document.querySelectorAll('.formation-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.textContent.includes(setupData.formation)) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    document.getElementById('formationName').textContent = setupData.formation + ' Formation';
+                    
+                    // Restore assignments
+                    playerAssignments = setupData.assignments || {};
+                    loadFormation(setupData.formation);
+                    
+                    // Restore notes
+                    if (setupData.notes) {
+                        document.getElementById('tacticalNotes').value = setupData.notes;
+                    }
+                    
+                    updateTacticalAnalysis();
+                    showToast('✓ Shared setup loaded!');
+                } catch (e) {
+                    console.error('Error loading from URL:', e);
+                }
+            }
+        }
+
+        // Initialize
+        loadSquad();
+        loadFormation('4-3-3');
+        updateTacticalAnalysis();
+        loadFromURL();
+    </script>
+</body>
+</html>
