@@ -56,9 +56,34 @@
             max-width: 1600px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 350px 1fr 320px;
+            grid-template-columns: 320px 1fr;
             gap: 25px;
             animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .pitch-and-squad {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .pitch-and-squad {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 25px;
         }
 
         .sidebar {
@@ -74,8 +99,9 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            max-height: 85vh;
+            max-height: 700px;
             overflow-y: auto;
+            min-width: 300px;
         }
 
         .position-group {
@@ -694,12 +720,17 @@
                 grid-template-columns: 1fr;
             }
 
-            .header h1 {
-                font-size: 2.5rem;
+            .pitch-and-squad {
+                grid-template-columns: 1fr !important;
             }
 
             .squad-panel {
+                order: -1;
                 max-height: none;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
             }
 
             .tactical-panel {
@@ -809,10 +840,21 @@
             </div>
         </div>
 
-        <div class="pitch-container">
-            <div class="formation-name" id="formationName">4-3-3 Formation</div>
-            <div class="pitch" id="pitch">
-                <!-- Players will be added here dynamically -->
+        <div class="main-content">
+            <div class="pitch-and-squad">
+                <div class="pitch-container">
+                    <div class="formation-name" id="formationName">4-3-3 Formation</div>
+                    <div class="pitch" id="pitch">
+                        <!-- Players will be added here dynamically -->
+                    </div>
+                </div>
+
+                <div class="squad-panel">
+                    <h2>Squad</h2>
+                    <div id="squadList">
+                        <!-- Squad will be loaded here -->
+                    </div>
+                </div>
             </div>
             
             <div class="tactical-panel">
@@ -851,13 +893,7 @@
         </div>
 
         <div class="toast" id="toast"></div>
-
-        <div class="squad-panel">
-            <h2>Squad</h2>
-            <div id="squadList">
-                <!-- Squad will be loaded here -->
-            </div>
-        </div>
+    </div>
     </div>
 
     <script>
